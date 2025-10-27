@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Up</title>
+</head>
+<body>
+    <h2>Sign Up</h2>
+    <form method="POST">
+        Username: <input type="text" name="username"><br><br>
+        Password: <input type="password" name="password"><br><br>
+        Projects (comma separated IDs): <input type="text" name="projects"><br><br>
+        <button type="submit">Sign Up</button>
+    </form>
+    <p style="color:red;">{{ message }}</p>
+    <p>Already have an account? <a href="/login">Login here</a></p>
+</body>
+</html>

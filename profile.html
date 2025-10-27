@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ user.username }}'s Profile</title>
+</head>
+<body>
+    <h1>Welcome, {{ user.username }}!</h1>
+    <h2>Your Projects:</h2>
+    <ul>
+        {% for project in user.projects %}
+            <li>
+                <strong>{{ project.name }}</strong> - {{ project.description or 'No description' }}
+            </li>
+        {% else %}
+            <li>No projects yet</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Add New Project</h3>
+    <form method="POST">
+        <input type="text" name="project_name" placeholder="Project name" required>
+        <input type="text" name="project_desc" placeholder="Description (optional)">
+        <button type="submit">Add Project</button>
+    </form>
+    <p>{{ message }}</p>
+</body>
+</html>
