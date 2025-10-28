@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from database import db, User, Project
 import hashlib
+import threading, time, requests
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
@@ -35,6 +36,83 @@ def add_user_api():
 
 @app.route('/api/user/fetch', methods=['GET'])
 def fetch_user_api():
+    key = request.args.get('key')
+    user = User.query.filter_by(key=key).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    return jsonify(user.to_dict())
+
+@app.route('/api/service/ping')
+def ping():
+    return jsonify({"status": "ok"}), 200
+
+# ---------------- HTML Pages ----------------
+@app.route('/')
+def index():
+    return redirect(url_for('login'))
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    message = ""
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        key = hash_password(password)
+        if User.query.filter_by(key=key).first():
+            message = "User already exists!"
+        else:
+            user = User(key=key, username=username)
+            db.session.add(user)
+            db.session.commit()
+            return redirect(url_for('login'))
+    return render_template('signup.html', message=message)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    message = ""
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        key = hash_password(password)
+        user = User.query.filter_by(key=key, username=username).first()
+        if user:
+            return redirect(url_for('profile', key=key))
+        else:
+            message = "Invalid username or password"
+    return render_template('login.html', message=message)
+
+@app.route('/profile/<key>', methods=['GET', 'POST'])
+def profile(key):
+    user = User.query.filter_by(key=key).first()
+    if not user:
+        return "User not found", 404
+
+    message = ""
+    if request.method == 'POST':
+        project_name = request.form.get('project_name')
+        project_desc = request.form.get('project_desc', '')
+        if project_name:
+            new_project = Project(name=project_name, description=project_desc, owner=user)
+            db.session.add(new_project)
+            db.session.commit()
+            message = f"Project '{project_name}' added!"
+    return render_template('profile.html', user=user, message=message)
+
+# ---------------- SELF PING ----------------
+def self_ping():
+    time.sleep(5)  # wait for server to start
+    while True:
+        try:
+            requests.get("http://127.0.0.1:5000/api/service/ping")
+            print("[SELF-PING] ✅ Alive")
+        except Exception as e:
+            print(f"[SELF-PING] ❌ Failed: {e}")
+        time.sleep(30)
+
+# ---------------- RUN ----------------
+if __name__ == '__main__':
+    threading.Thread(target=self_ping, daemon=True).start()
+    app.run(debug=True, host='0.0.0.0', port=5000)def fetch_user_api():
     key = request.args.get('key')
     user = User.query.filter_by(key=key).first()
     if not user:
