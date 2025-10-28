@@ -41,6 +41,10 @@ def fetch_user_api():
         return jsonify({"error": "User not found"}), 404
     return jsonify(user.to_dict())
 
+
+@app.route('/api/service/ping')
+def ping():
+    return jsonify({"status": "ok"}), 200
 # ---------------- HTML Pages ----------------
 @app.route('/')
 def index():
@@ -98,3 +102,5 @@ def profile(key):
 # ---------------- RUN ----------------
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
+    while(1):
+        #make it ping itself repeatedly each 30 seconds
